@@ -1,0 +1,27 @@
+@charset "UTF-8";
+
+*{
+	box-sizing: border-box;
+}
+
+body {
+	font-family: "Raleway", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
+	width:95%;
+	height: 100%;
+}
+
+.container {
+	max-width:500px;
+	margin-right: auto;
+	margin-left: auto;
+	margin-top: 10px;
+	text-align: center;
+}
+
+ul.center {
+  margin-left: 120px;
+}
+
+ul.center li{
+  text-align: left;
+}

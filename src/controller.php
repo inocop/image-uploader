@@ -35,7 +35,7 @@ class controller
     public function confirm()
     {
         // check select file
-        if (empty($_FILES['userfile']['tmp_name'])) {
+        if (is_uploaded_file($_FILES['userfile']['tmp_name'])) {
             $_SESSION['message'] = 'not select file';
             $this->index();
             return;
@@ -75,10 +75,15 @@ class controller
      */
     public function upload()
     {
+        if (empty($_POST['base64']) || $_SESSION['validation_token']){
+            $_SESSION['message'] = 'file is invalid';
+            header('location: ./controller.php');
+            exit();
+        }
         $base64 = $_POST['base64'];
+        $token = hash("sha256", $base64) . strlen($base64);
 
         // validation
-        $token = hash("sha256", $base64) . strlen($base64);
         if ($_SESSION['validation_token'] !== $token){
             $_SESSION['message'] = 'file is invalid';
             header('location: ./controller.php');

@@ -35,12 +35,11 @@ class controller
     public function confirm()
     {
         // check select file
-        if (is_uploaded_file($_FILES['userfile']['tmp_name'])) {
+        if (!is_uploaded_file($_FILES['userfile']['tmp_name'])) {
             $_SESSION['message'] = 'not select file';
             $this->index();
             return;
         }
-
         $filepath = $_FILES['userfile']['tmp_name'];
 
         // check mime type

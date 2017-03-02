@@ -3,7 +3,7 @@ services:
   web:
     build: ./web
     ports:
+      - "9000"
       - "8080:80"
     volumes:
-      - ./src:/var/www/html
-
+      - .:/var/www/html

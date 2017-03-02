@@ -1,4 +1,5 @@
 <?php
+
 $controller = new controller();
 $data = (isset($_GET['method'])) ? $_GET['method'] : 'index';
 call_user_func([$controller, $data], '');
@@ -8,7 +9,9 @@ class controller
 
     public function __construct()
     {
-        session_start();
+        if (!isset($_SESSION)){
+            session_start();
+        }
     }
 
     /**
@@ -26,7 +29,7 @@ class controller
         }
         $data['file_links'] = $file_links;
 
-        $this->view(__DIR__ . '/views/index.php', $data);
+        $this->view('index.php', $data);
     }
 
     /**
@@ -35,7 +38,7 @@ class controller
     public function confirm()
     {
         // check select file
-        if (!is_uploaded_file($_FILES['userfile']['tmp_name'])) {
+        if (empty($_FILES['userfile']['tmp_name']) || !is_uploaded_file($_FILES['userfile']['tmp_name'])) {
             $_SESSION['message'] = 'not select file';
             $this->index();
             return;
@@ -53,7 +56,7 @@ class controller
 
         if ($mime_type == 'image/jpeg') {
             // read exif & orienttation fixed
-            require_once(__DIR__ . '/models/orientaion_fixed.php');
+            require_once(dirname(__FILE__) . '/../models/orientaion_fixed.php');
             $orientaion_fixed = new orientaion_fixed();
             $orientaion_fixed->fixed_image($filepath);
         }
@@ -66,7 +69,7 @@ class controller
         $validation_token = hash("sha256", $base64) . strlen($base64);
         $_SESSION['validation_token'] = $validation_token;
 
-        $this->view(__DIR__ . '/views/confirm.php', $data);
+        $this->view('confirm.php', $data);
     }
 
     /**
@@ -74,7 +77,7 @@ class controller
      */
     public function upload()
     {
-        if (empty($_POST['base64']) || $_SESSION['validation_token']){
+        if (empty($_POST['base64']) || empty($_SESSION['validation_token'])){
             $_SESSION['message'] = 'file is invalid';
             header('location: ./controller.php');
             exit();
@@ -84,7 +87,7 @@ class controller
 
         // validation
         if ($_SESSION['validation_token'] !== $token){
-            $_SESSION['message'] = 'file is invalid';
+            $_SESSION['message'] = 'file is invalid2';
             header('location: ./controller.php');
             exit();
         }
@@ -111,9 +114,11 @@ class controller
 
     private function view($viewfile, $params = [])
     {
-        if (is_file($viewfile)) {
+        $view_dir = dirname(__FILE__) . '/../views/';
+
+        if (is_file($view_dir . $viewfile)) {
             extract($params);
-            include ($viewfile);
+            include ($view_dir . $viewfile);
             return;
         }
         throw new \LogicException('view file not found');

@@ -1,7 +1,4 @@
 {
-    "config": {
-      "vendor-dir": "src/vendor"
-    },
     "require": {
         "php": ">=5.6.0"
     },
@@ -10,7 +7,7 @@
     },
     "scripts": {
         "test": [
-            "src/vendor/bin/phpunit src/tests/"
+            "vendor/bin/phpunit tests/"
         ]
     }
 }

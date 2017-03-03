@@ -27,4 +27,5 @@ WORKDIR /tmp
 RUN curl -sS https://getcomposer.org/installer | php
 RUN mv composer.phar /usr/local/bin/composer
 
+
 CMD ["/usr/sbin/apachectl", "-D", "FOREGROUND"]

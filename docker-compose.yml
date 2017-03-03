@@ -1,9 +1,8 @@
 version: '2'
 services:
   web:
-    build: ./web
+    build:./web
     ports:
-      - "9000"
       - "8080:80"
     volumes:
       - .:/var/www/html

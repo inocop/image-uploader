@@ -4,7 +4,7 @@ services:
     build:
       context: ./web
       args:
-        - HOST_IP_ADDR=192.168.0.12
+        - HOST_IP_ADDR=192.168.0.12  #your host ip
     ports:
       - "8080:80"
     volumes:

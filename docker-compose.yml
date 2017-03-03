@@ -1,7 +1,10 @@
 version: '2'
 services:
   web:
-    build:./web
+    build:
+      context: ./web
+      args:
+        - HOST_IP_ADDR=192.168.0.12
     ports:
       - "8080:80"
     volumes:

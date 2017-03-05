@@ -13,14 +13,12 @@ RUN yum install --enablerepo=epel,remi-php56,remi -y \
                               php-pecl-xdebug \
                               php-gd
 
-# enable .htaccess
-RUN sed -i -e "s/AllowOverride None/AllowOverride All/g" /etc/httpd/conf/httpd.conf
-
 # set vhost.conf
 COPY ./vhost.conf /etc/httpd/conf.d/vhost.conf
 
 # set custom_php.ini
 COPY ./custom_php.ini /etc/php.d/
+
 # setting remote debug
 ARG HOST_IP_ADDR
 RUN sed -i -e "s/{{HOST_IP_ADDR}}/$HOST_IP_ADDR/g" /etc/php.d/custom_php.ini

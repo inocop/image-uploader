@@ -9,12 +9,12 @@ class controller_Test extends \PHPUnit_Framework_TestCase
 
     public static function setUpBeforeClass()
     {
+        @session_start();
         require_once(dirname(__FILE__) . '/../vendor/autoload.php');
     }
 
     protected function setUp()
     {
-        @session_start();
     }
 
     public function test_show_index()
@@ -30,5 +30,17 @@ class controller_Test extends \PHPUnit_Framework_TestCase
 
         $this->assertContains('Image upload', $output);
         $this->assertContains('test_message', $output);
+    }
+
+    public function test_not_select_file()
+    {
+        ob_start();
+
+        $this->controller = new controller();
+        $this->controller->confirm();
+        $output = ob_get_clean();
+
+        $this->assertContains('Image upload', $output);
+        $this->assertContains('not select file', $output);
     }
 }

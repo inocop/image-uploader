@@ -1,8 +1,17 @@
 <?php
 
+define('SRC_PATH', dirname(__FILE__) . '/../');
+
 $controller = new controller();
 $data = (isset($_GET['method'])) ? $_GET['method'] : 'index';
-call_user_func([$controller, $data], '');
+
+if (method_exists($controller,$data)){
+    call_user_func([$controller, $data], '');
+}else{
+    header("HTTP/1.1 404 Not Found");
+    echo 'Not Found';
+}
+
 
 class controller
 {
@@ -12,6 +21,10 @@ class controller
         if (!isset($_SESSION)){
             session_start();
         }
+
+        require_once(SRC_PATH . 'models/image_crop.php');
+        require_once(SRC_PATH . 'models/image_save.php');
+        require_once(SRC_PATH . 'models/orientaion_fixed.php');
     }
 
     /**
@@ -39,7 +52,7 @@ class controller
     {
         // check select file
         if (empty($_FILES['userfile']['tmp_name']) || !is_uploaded_file($_FILES['userfile']['tmp_name'])) {
-            $_SESSION['message'] = 'not select file';
+            $_SESSION['message'] = 'file is not select';
             $this->index();
             return;
         }
@@ -49,18 +62,22 @@ class controller
         $finfo = new finfo(FILEINFO_MIME_TYPE);
         $mime_type = $finfo->file($filepath);
         if (!preg_match('/^image\//', $mime_type)) {
-            $_SESSION['message'] = 'not select file';
+            $_SESSION['message'] = 'file format is invalid';
             $this->index();
             return;
         }
 
         if ($mime_type == 'image/jpeg') {
             // read exif & orienttation fixed
-            require_once(dirname(__FILE__) . '/../models/orientaion_fixed.php');
             $orientaion_fixed = new orientaion_fixed();
             $orientaion_fixed->fixed_image($filepath);
         }
 
+        // iamge adjust
+        $image_crop = new image_crop();
+        $image_crop->crop($filepath);
+
+        // encode base64
         $image = file_get_contents($filepath);
         $base64 = base64_encode($image);
         $data['base64'] = $base64;
@@ -77,48 +94,39 @@ class controller
      */
     public function upload()
     {
-        if (empty($_POST['base64']) || empty($_SESSION['validation_token'])){
-            $_SESSION['message'] = 'file is invalid';
-            header('location: ./controller.php');
-            exit();
+        $is_valid = isset($_POST['base64'], $_SESSION['validation_token']);
+        if ($is_valid){
+            $base64 = $_POST['base64'];
+            $token = hash("sha256", $base64) . strlen($base64);
+            $is_valid = ($_SESSION['validation_token'] == $token);
         }
-        $base64 = $_POST['base64'];
-        $token = hash("sha256", $base64) . strlen($base64);
-
-        // validation
-        if ($_SESSION['validation_token'] !== $token){
-            $_SESSION['message'] = 'file is invalid2';
+        if (!$is_valid){
+            $_SESSION['message'] = 'upload file is invalid';
             header('location: ./controller.php');
             exit();
         }
         unset($_SESSION['validation_token']);
 
-        // define filename
-        $timestamp = microtime(true);
-        $timestamp = $timestamp*10000;
-        $filepath = __DIR__ . "/uploaded/image_{$timestamp}";
-        // image saving
+        // image save
         $image = base64_decode($base64);
-        file_put_contents($filepath, $image);
+        $image_save = new image_save();
+        if ($image_save->save($image, SRC_PATH . 'public/uploaded')) {
+            $_SESSION['message'] = 'upload success!';
+        }else{
+            $_SESSION['message'] = 'upload failure!';
+        }
 
-        // add extension
-        $finfo = new finfo(FILEINFO_MIME_TYPE);
-        $mime_type = $finfo->file($filepath);
-        $extension = str_replace('image/', '', $mime_type);
-        rename($filepath, $filepath.".{$extension}");
-
-        $_SESSION['message'] = 'upload success!';
         header('location: ./controller.php');
         exit();
     }
 
     private function view($viewfile, $params = [])
     {
-        $view_dir = dirname(__FILE__) . '/../views/';
+        $file = SRC_PATH . 'views/' . $viewfile;
 
-        if (is_file($view_dir . $viewfile)) {
+        if (is_file($file)) {
             extract($params);
-            include ($view_dir . $viewfile);
+            include ($file);
             return;
         }
         throw new \LogicException('view file not found');

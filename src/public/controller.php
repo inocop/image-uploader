@@ -23,8 +23,6 @@ class controller
         }
 
         require_once(SRC_PATH . 'models/image_crop.php');
-        require_once(SRC_PATH . 'models/image_save.php');
-        require_once(SRC_PATH . 'models/orientaion_fixed.php');
     }
 
     /**
@@ -59,29 +57,22 @@ class controller
         $filepath = $_FILES['userfile']['tmp_name'];
 
         // check mime type
-        $finfo = new finfo(FILEINFO_MIME_TYPE);
-        $mime_type = $finfo->file($filepath);
-        if (!preg_match('/^image\//', $mime_type)) {
+        $info = getimagesize($filepath);
+        if (!$info) {
             $_SESSION['message'] = 'file format is invalid';
             $this->index();
             return;
         }
 
-        if ($mime_type == 'image/jpeg') {
-            // read exif & orienttation fixed
-            $orientaion_fixed = new orientaion_fixed();
-            $orientaion_fixed->fixed_image($filepath);
-        }
-
         // iamge adjust
         $image_crop = new image_crop();
-        $image_crop->crop($filepath);
+        $image_crop->crop($filepath, $info['mime']);
 
         // encode base64
         $image = file_get_contents($filepath);
         $base64 = base64_encode($image);
         $data['base64'] = $base64;
-        $data['mime_type'] = $mime_type;
+        $data['mime_type'] = $info['mime'];
 
         $validation_token = hash("sha256", $base64) . strlen($base64);
         $_SESSION['validation_token'] = $validation_token;
@@ -107,15 +98,18 @@ class controller
         }
         unset($_SESSION['validation_token']);
 
-        // image save
+        // define filename
+        $timestamp = microtime(true);
+        $timestamp = $timestamp*10000;
+        $filepath = SRC_PATH . "public/uploaded/image_{$timestamp}";
+        // encode and image save
         $image = base64_decode($base64);
-        $image_save = new image_save();
-        if ($image_save->save($image, SRC_PATH . 'public/uploaded')) {
-            $_SESSION['message'] = 'upload success!';
-        }else{
-            $_SESSION['message'] = 'upload failure!';
-        }
+        file_put_contents($filepath, $image);
+        // add extension
+        $extension = image_type_to_extension(exif_imagetype($filepath));
+        rename($filepath, $filepath . "{$extension}");
 
+        $_SESSION['message'] = 'upload success!';
         header('location: ./controller.php');
         exit();
     }

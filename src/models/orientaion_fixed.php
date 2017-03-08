@@ -4,16 +4,10 @@ class orientaion_fixed
 
     public function fixed_image($filepath)
     {
-        $base_image = imagecreatefromjpeg($filepath);
-        $w = imagesx($base_image);
-        $h = imagesy($base_image);
-
-        $fix_image = imagecreatetruecolor($w, $h);
-        imagecopyresampled($fix_image, $base_image, 0, 0, 0, 0, $w, $h, $w, $h);
-        imagedestroy($base_image);
+        $fix_image = imagecreatefromjpeg($filepath);
 
         $exif_datas = @exif_read_data($filepath);
-        if (empty($base_image) || empty($exif_datas['Orientation'])) {
+        if (empty($fix_image) || empty($exif_datas['Orientation'])) {
             return false;
         }
 
@@ -46,7 +40,8 @@ class orientaion_fixed
             return true;
         }
 
-        imagejpeg($fix_image, $filepath);
+        imagejpeg($fix_image, $filepath, 90);
+        imagedestroy($fix_image);
         return true;
     }
 }

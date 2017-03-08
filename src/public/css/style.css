@@ -22,6 +22,12 @@ ul.center {
   margin-left: 120px;
 }
 
+@media (max-width: 768px) {
+	ul.center {
+		margin-left: 0px;
+	}
+}
+
 ul.center li{
   text-align: left;
 }

@@ -59,7 +59,7 @@ class controller
         // check mime type & adjust
         $info = getimagesize($filepath);
         $image_crop = new image_crop();
-        if (!$info && $image_crop->crop($filepath, $info['mime'])) {
+        if (!$info || !$image_crop->crop($filepath, $info['mime'])) {
             $_SESSION['message'] = 'file format is invalid';
             $this->index();
             return;

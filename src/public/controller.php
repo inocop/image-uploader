@@ -56,17 +56,14 @@ class controller
         }
         $filepath = $_FILES['userfile']['tmp_name'];
 
-        // check mime type
+        // check mime type & adjust
         $info = getimagesize($filepath);
-        if (!$info) {
+        $image_crop = new image_crop();
+        if (!$info && $image_crop->crop($filepath, $info['mime'])) {
             $_SESSION['message'] = 'file format is invalid';
             $this->index();
             return;
         }
-
-        // iamge adjust
-        $image_crop = new image_crop();
-        $image_crop->crop($filepath, $info['mime']);
 
         // encode base64
         $image = file_get_contents($filepath);

@@ -1,8 +1,6 @@
 ## Environment
 Docker for mac ver1.13.1
-
-## Requirement
-- php 5.5+
+- php 5.6
 - php-gd
 
 ## Start
